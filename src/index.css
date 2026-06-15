@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+html.high-contrast {
+  filter: grayscale(100%) contrast(150%);
+}
