@@ -18,6 +18,8 @@ export type CartContextType = {
   increaseQuantity: (id: number) => void;
   decreaseQuantity: (id: number) => void;
   total: number;
+  clearCart: () => void;
+  checkout: () => void;
 };
 
 export const CartContext = createContext<CartContextType | null>(null);
