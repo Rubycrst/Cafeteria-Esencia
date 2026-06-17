@@ -5,6 +5,7 @@ function Checkout() {
   const { cart, total } = useCart();
 
   const [paymentMethod, setPaymentMethod] = useState("transferencia");
+  const [shipping, setShipping] = useState("Ate Vitarte");
 
   // 💳 tarjeta
   const [cardNumber, setCardNumber] = useState("");
@@ -14,8 +15,60 @@ function Checkout() {
 
   const [error, setError] = useState("");
 
-  const envio = 17;
-  const totalFinal = total + envio;
+  // 🚚 distritos
+  const shippingOptions = [
+    { name: "Ate Vitarte", price: 17 },
+    { name: "Barranco", price: 12 },
+    { name: "Bellavista", price: 20 },
+    { name: "Breña", price: 12 },
+    { name: "Callao", price: 17 },
+    { name: "Carabayllo (compra >100)", price: 30 },
+    { name: "Carmen de la Legua", price: 17 },
+    { name: "Cercado de Lima", price: 12 },
+    { name: "Chorrillos", price: 17 },
+    { name: "Cieneguilla (compra >100)", price: 30 },
+    { name: "Comas", price: 15 },
+    { name: "El agustino", price: 15 },
+    { name: "Huachipa", price: 20 },
+    { name: "Independencia", price: 12 },
+    { name: "Jesús María", price: 12 },
+    { name: "La Molina", price: 17 },
+    { name: "La Perla", price: 17 },
+    { name: "La Punta", price: 17 },
+    { name: "La Victoria", price: 12 },
+    { name: "Lince", price: 12 },
+    { name: "Los Olivos", price: 15 },
+    { name: "Lurín (compra >100)", price: 30 },
+    { name: "Magdalena", price: 12 },
+    { name: "Miraflores", price: 12 },
+    { name: "Pachacamac (compra >100)", price: 30 },
+    { name: "Pueblo Libre", price: 12 },
+    { name: "Puente Piedra (compra >100)", price: 25 },
+    { name: "Rimac", price: 14 },
+    { name: "Salamanca", price: 12 },
+    { name: "San Borja", price: 12 },
+    { name: "San Isidro", price: 12 },
+    { name: "San Juan de Lurigancho (hasta 5 Mariscal)", price: 15 },
+    { name: "San Juan de Lurigancho (del 5 Mariscal al Porton)", price: 17 },
+    { name: "San Juan de Miraflores", price: 17 },
+    { name: "San Luis", price: 12 },
+    { name: "San Martin de Porres", price: 12 },
+    { name: "San Miguel", price: 12 },
+    { name: "Santa Anita", price: 15 },
+    { name: "Santa Clara", price: 17 },
+    { name: "Surco", price: 12 },
+    { name: "Surquillo", price: 12 },
+    { name: "Villa el Salvador", price: 17 },
+    { name: "Villa Maria del Triunfo", price: 17 },
+    { name: "Ate Vitarte - Salamanca", price: 15 },
+    { name: "Ate Vitarte - Santa Clara", price: 17 },
+    { name: "SJL - Jicamarca", price: 17 },
+  ];
+
+  const shippingPrice =
+    shippingOptions.find((s) => s.name === shipping)?.price || 0;
+
+  const totalFinal = total + shippingPrice;
 
   const handleOrder = () => {
     if (paymentMethod === "tarjeta") {
@@ -70,10 +123,6 @@ function Checkout() {
 
             <input placeholder="Correo electrónico *" className="w-full border p-3 rounded" />
 
-            <label className="flex items-center gap-2 mt-4">
-              <input type="checkbox" />
-              ¿Enviar a una dirección diferente?
-            </label>
 
           </div>
         </div>
@@ -88,9 +137,7 @@ function Checkout() {
           <div className="border-b pb-4">
             {cart.map((item) => (
               <div key={item.id} className="flex justify-between text-sm mb-2">
-                <span>
-                  {item.name} × {item.quantity}
-                </span>
+                <span>{item.name} × {item.quantity}</span>
                 <span>S/ {item.price * item.quantity}</span>
               </div>
             ))}
@@ -103,10 +150,24 @@ function Checkout() {
               <span>S/ {total}</span>
             </div>
 
-            <div className="flex justify-between">
-              <span>Envío</span>
-              <span>S/ {envio}</span>
+            {/* ENVÍO SELECT */}
+            <div className="mt-4">
+              <h3 className="font-bold text-lg mb-2">Envío</h3>
+
+              <select
+                value={shipping}
+                onChange={(e) => setShipping(e.target.value)}
+                className="w-full border p-3 rounded"
+              >
+                {shippingOptions.map((s) => (
+                  <option key={s.name} value={s.name}>
+                    {s.name} - S/ {s.price}
+                  </option>
+                ))}
+              </select>
             </div>
+
+
 
             <div className="flex justify-between font-bold text-lg">
               <span>Total</span>
@@ -145,12 +206,12 @@ function Checkout() {
           {/* ================= TRANSFERENCIA ================= */}
           {paymentMethod === "transferencia" && (
             <div className="mt-4 p-4 border rounded bg-gray-50 text-sm text-gray-700">
-              <p>Realiza tu pago directamente en nuestra cuenta bancaria. Por favor, usa el número del pedido como referencia de pago.</p>
+              <p>Realiza tu pago directamente en nuestra cuenta bancaria. Usa el número de pedido como referencia.</p>
               <p className="mt-2">
-                 Tu pedido no se procesará hasta que se haya recibido el importe en nuestra cuenta.
+                Tu pedido no se procesará hasta recibir el pago.
               </p>
               <p className="mt-2 font-semibold">
-                Envía el comprobante al whatsapp 912345678 con el número de pedido como referencia.
+                Envía comprobante al WhatsApp 912345678.
               </p>
             </div>
           )}
@@ -158,10 +219,6 @@ function Checkout() {
           {/* ================= TARJETA ================= */}
           {paymentMethod === "tarjeta" && (
             <div className="mt-4 space-y-3">
-
-              <p className="text-sm text-gray-600">
-                Débito e crédito (Visa / Mastercard / Mercado Pago)
-              </p>
 
               <input
                 placeholder="Número de tarjeta"
@@ -203,10 +260,6 @@ function Checkout() {
 
               </div>
 
-              <p className="text-xs text-gray-500">
-                Tus datos de tarjeta se procesarán de forma segura.
-              </p>
-
               {error && (
                 <p className="text-red-500 text-sm font-semibold">
                   {error}
@@ -216,7 +269,7 @@ function Checkout() {
             </div>
           )}
 
-          {/* ================= BOTÓN FINAL ================= */}
+          {/* ================= BOTÓN ================= */}
           <button
             onClick={handleOrder}
             className="mt-6 w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg"
