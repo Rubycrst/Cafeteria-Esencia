@@ -9,6 +9,7 @@ import DashboardAdmin from "../pages/DashboardAdmin";
 
 import MainLayout from "../layouts/MainLayout";
 import Carrito from "../pages/Carrito";
+import ProductoDetalle from "../pages/ProductoDetalle"; 
 
 function AppRoutes() {
   return (
@@ -33,6 +34,15 @@ function AppRoutes() {
           </MainLayout>
         }
       />
+
+      <Route
+  path="/producto/:id"
+  element={
+    <MainLayout>
+      <ProductoDetalle />
+    </MainLayout>
+  }
+/>
 
       {/* LOGIN */}
       <Route
