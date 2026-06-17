@@ -37,21 +37,22 @@ function AppRoutes() {
         }
       />
 
-<<<<<<< HEAD
       {/* PRODUCTOS */}
       <Route
         path="/productos"
         element={
           <MainLayout>
             <Productos />
-=======
+          </MainLayout>
+        }
+      />
+
       {/* PRODUCTO DETALLE */}
       <Route
         path="/producto/:id"
         element={
           <MainLayout>
-          <ProductoDetalle />
->>>>>>> 8c6be8127ea03c17583c69d348be085acd4893b0
+            <ProductoDetalle />
           </MainLayout>
         }
       />
