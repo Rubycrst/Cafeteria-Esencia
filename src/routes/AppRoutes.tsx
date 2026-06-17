@@ -9,6 +9,9 @@ import Dashboard from "../pages/Dashboard";
 import DashboardAdmin from "../pages/DashboardAdmin";
 
 import MainLayout from "../layouts/MainLayout";
+import Carrito from "../pages/Carrito";
+import ProductoDetalle from "../pages/ProductoDetalle";
+import Checkout from "../pages/Checkout"; // 👈 IMPORTANTE
 
 function AppRoutes() {
   return (
@@ -34,12 +37,21 @@ function AppRoutes() {
         }
       />
 
+<<<<<<< HEAD
       {/* PRODUCTOS */}
       <Route
         path="/productos"
         element={
           <MainLayout>
             <Productos />
+=======
+      {/* PRODUCTO DETALLE */}
+      <Route
+        path="/producto/:id"
+        element={
+          <MainLayout>
+          <ProductoDetalle />
+>>>>>>> 8c6be8127ea03c17583c69d348be085acd4893b0
           </MainLayout>
         }
       />
@@ -80,6 +92,26 @@ function AppRoutes() {
         element={
           <MainLayout>
             <DashboardAdmin />
+          </MainLayout>
+        }
+      />
+
+      {/* CARRITO */}
+      <Route
+        path="/carrito"
+        element={
+          <MainLayout>
+            <Carrito />
+          </MainLayout>
+        }
+      />
+
+      {/* CHECKOUT 🧾 */}
+      <Route
+        path="/checkout"
+        element={
+          <MainLayout>
+            <Checkout />
           </MainLayout>
         }
       />

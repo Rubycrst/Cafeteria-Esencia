@@ -1,6 +1,9 @@
 import { Link } from "react-router-dom";
+import { useCart } from "../context/useCart";
 
 function Navbar() {
+  const { cart } = useCart();
+
   return (
     <nav className="fixed top-0 left-0 w-full bg-white shadow-md z-40">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -9,7 +12,7 @@ function Navbar() {
           ☕ Cafetería Esencia
         </h1>
 
-        <ul className="flex gap-8 font-medium">
+        <ul className="flex gap-8 font-medium items-center">
 
           <li>
             <Link
@@ -25,7 +28,7 @@ function Navbar() {
               to="/menu"
               className="hover:text-amber-700 transition"
             >
-              Menú
+              Productos
             </Link>
           </li>
 
@@ -44,7 +47,6 @@ function Navbar() {
               className="hover:text-amber-700 transition"
             >
               Iniciar sesión
-
             </Link>
           </li>
 
@@ -54,6 +56,36 @@ function Navbar() {
               className="hover:text-amber-700 transition"
             >
               Registro
+            </Link>
+          </li>
+
+          <li>
+            <Link
+  to="/carrito"
+  className="relative text-2xl"
+>
+              🛒
+
+              {cart.length > 0 && (
+                <span
+                  className="
+                    absolute
+                    -top-2
+                    -right-3
+                    bg-red-500
+                    text-white
+                    text-xs
+                    w-5
+                    h-5
+                    rounded-full
+                    flex
+                    items-center
+                    justify-center
+                  "
+                >
+                  {cart.length}
+                </span>
+              )}
             </Link>
           </li>
 
