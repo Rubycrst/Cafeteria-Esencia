@@ -1,47 +1,36 @@
 import { useEffect, useState } from "react";
-import {
-  CartContext,
-  type Product,
-  type CartItem,
-} from "./CartContext";
+import { CartContext, type Product, type CartItem } from "./CartContext";
 
-export function CartProvider({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export function CartProvider({ children }: { children: React.ReactNode }) {
+
   const [cart, setCart] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem("cart");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
+    const saved = localStorage.getItem("cart");
+    return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  const addToCart = (product: Product) => {
-    const existing = cart.find((item) => item.id === product.id);
+  const addToCart = (product: Product, quantity: number = 1) => {
+    setCart((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
 
-    if (existing) {
-      setCart(
-        cart.map((item) =>
+      if (existing) {
+        return prev.map((item) =>
           item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
+            ? { ...item, quantity: item.quantity + quantity }
             : item
-        )
-      );
-    } else {
-      setCart([...cart, { ...product, quantity: 1 }]);
-    }
+        );
+      }
+
+      return [...prev, { ...product, quantity }];
+    });
   };
 
   const increaseQuantity = (id: number) => {
-    setCart(
-      cart.map((item) =>
+    setCart((prev) =>
+      prev.map((item) =>
         item.id === id
           ? { ...item, quantity: item.quantity + 1 }
           : item
@@ -50,8 +39,8 @@ export function CartProvider({
   };
 
   const decreaseQuantity = (id: number) => {
-    setCart(
-      cart
+    setCart((prev) =>
+      prev
         .map((item) =>
           item.id === id
             ? { ...item, quantity: item.quantity - 1 }
@@ -62,16 +51,13 @@ export function CartProvider({
   };
 
   const removeFromCart = (id: number) => {
-    setCart(cart.filter((item) => item.id !== id));
+    setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
+  // ✅ NUEVO: vaciar carrito
   const clearCart = () => {
     setCart([]);
-  };
-
-  const checkout = () => {
-    alert("Compra realizada con éxito 🎉");
-    setCart([]);
+    localStorage.removeItem("cart");
   };
 
   const total = cart.reduce(
@@ -87,9 +73,8 @@ export function CartProvider({
         removeFromCart,
         increaseQuantity,
         decreaseQuantity,
+        clearCart, // ✅ AQUI
         total,
-        clearCart,
-        checkout,
       }}
     >
       {children}

@@ -13,13 +13,12 @@ export type CartItem = Product & {
 
 export type CartContextType = {
   cart: CartItem[];
-  addToCart: (product: Product) => void;
+  addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (id: number) => void;
   increaseQuantity: (id: number) => void;
   decreaseQuantity: (id: number) => void;
+  clearCart: () => void; // ✅ NUEVO
   total: number;
-  clearCart: () => void;
-  checkout: () => void;
 };
 
 export const CartContext = createContext<CartContextType | null>(null);
