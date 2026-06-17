@@ -1,99 +1,91 @@
+import { products } from "../data/products";
+import { Link } from "react-router-dom";
 import { useCart } from "../context/useCart";
 
 function Menu() {
-  const { addToCart, cart, total, removeFromCart } = useCart();
-
-  const products = [
-    { id: 1, name: "Café Americano", price: 5 },
-    { id: 2, name: "Capuccino", price: 7 },
-    { id: 3, name: "Brownie", price: 6 },
-    { id: 4, name: "Sandwich", price: 8 },
-  ];
+  const { addToCart } = useCart();
 
   return (
-    <div className="min-h-screen bg-amber-50 p-10">
+    <div className="min-h-screen bg-white">
 
-      <h1 className="text-4xl font-bold text-amber-900 mb-6">
-        Menú ☕
-      </h1>
+      <div className="bg-amber-900 py-12 mb-10">
+        <h1 className="text-center text-4xl font-bold text-white">
+          Cafés por Región
+        </h1>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="max-w-7xl mx-auto px-6">
 
-        {/* PRODUCTOS */}
-        <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
 
-          <h2 className="text-2xl font-bold mb-4">Productos disponibles</h2>
+          {products.map((product) => (
 
-          <div className="space-y-4">
+            <div
+              key={product.id}
+              className="group"
+            >
 
-            {products.map((p) => (
-              <div
-                key={p.id}
-                className="bg-white p-4 rounded shadow flex justify-between items-center"
-              >
+              <Link to={`/producto/${product.id}`}>
 
-                <div>
-                  <h3 className="font-bold">{p.name}</h3>
-                  <p className="text-gray-600">S/ {p.price}</p>
+                <div className="overflow-hidden rounded-lg">
+
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="
+                      w-full
+                      h-[340px]
+                      object-cover
+                      group-hover:scale-105
+                      transition
+                      duration-300
+                    "
+                  />
+
                 </div>
 
+              </Link>
+
+              <div className="text-center mt-4">
+
+                <h3 className="text-xl font-medium">
+                  {product.name}
+                </h3>
+
+                <p className="text-gray-500">
+                  Regiones, {product.region}
+                </p>
+
+                <p className="font-bold text-amber-800 mt-2">
+                  S/ {product.price}.00
+                </p>
+
                 <button
-                  onClick={() => addToCart(p)}
-                  className="bg-amber-700 text-white px-3 py-1 rounded"
+                  onClick={() => addToCart(product)}
+                  className="
+                    mt-4
+                    bg-amber-700
+                    text-white
+                    px-5
+                    py-2
+                    rounded-lg
+                    hover:bg-amber-800
+                    transition
+                  "
                 >
-                  Agregar
+                  Agregar al carrito
                 </button>
 
               </div>
-            ))}
 
-          </div>
-        </div>
+            </div>
 
-        {/* CARRITO */}
-        <div>
-
-          <h2 className="text-2xl font-bold mb-4">
-            Carrito 🛒 ({cart.length})
-          </h2>
-
-          <div className="bg-white p-4 rounded shadow">
-
-            {cart.length === 0 ? (
-              <p className="text-gray-500">Carrito vacío</p>
-            ) : (
-              <div className="space-y-3">
-
-                {cart.map((item, index) => (
-                  <div key={index} className="flex justify-between border-b pb-2">
-
-                    <div>
-                      <p className="font-semibold">{item.name}</p>
-                      <p className="text-sm text-gray-600">S/ {item.price}</p>
-                    </div>
-
-                    <button
-                      onClick={() => removeFromCart(item.id)}
-                      className="text-red-500 font-bold"
-                    >
-                      X
-                    </button>
-
-                  </div>
-                ))}
-
-              </div>
-            )}
-
-          </div>
-
-          <p className="mt-4 font-bold text-lg">
-            Total: S/ {total}
-          </p>
+          ))}
 
         </div>
 
       </div>
+
     </div>
   );
 }

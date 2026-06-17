@@ -8,6 +8,7 @@ import Dashboard from "../pages/Dashboard";
 import DashboardAdmin from "../pages/DashboardAdmin";
 
 import MainLayout from "../layouts/MainLayout";
+import Carrito from "../pages/Carrito";
 
 function AppRoutes() {
   return (
@@ -69,6 +70,16 @@ function AppRoutes() {
         element={
           <MainLayout>
             <DashboardAdmin />
+          </MainLayout>
+        }
+      />
+
+      {/* CARROTTI */}
+      <Route
+        path="/carrito"
+        element={
+          <MainLayout>
+            <Carrito />
           </MainLayout>
         }
       />
