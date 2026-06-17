@@ -31,6 +31,15 @@ function Navbar() {
 
           <li>
             <Link
+              to="/productos"
+              className="hover:text-amber-700 transition"
+            >
+              Productos
+            </Link>
+          </li>
+
+          <li>
+            <Link
               to="/login"
               className="hover:text-amber-700 transition"
             >
