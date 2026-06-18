@@ -49,9 +49,7 @@ function Inicio() {
     },
   ];
 
-  const goToMenu = () => {
-    navigate("/menu");
-  };
+  
 
   const goToProductos = () => {
     navigate("/productos");
@@ -76,12 +74,7 @@ function Inicio() {
             <p className="mt-5 text-lg md:text-xl text-amber-100 max-w-2xl mx-auto">
               Disfruta postres, cafés especiales y bebidas frescas en un espacio acogedor.
             </p>
-            <button
-              onClick={goToMenu}
-              className="mt-8 inline-flex items-center justify-center rounded-full bg-amber-600 px-8 py-3 text-white font-semibold shadow-lg shadow-amber-900/30 hover:bg-amber-700 transition"
-            >
-              Ver Menú
-            </button>
+          
           </div>
         </div>
       </section>
@@ -159,9 +152,8 @@ function Inicio() {
 
             <div className="mt-8 grid gap-6 md:grid-cols-3">
               {featured.map((product) => (
-                <button
+                <div
                   key={product.id}
-                  onClick={goToMenu}
                   className="group overflow-hidden rounded-3xl bg-white shadow-xl transition hover:-translate-y-1"
                 >
                   <img
@@ -169,16 +161,25 @@ function Inicio() {
                     alt={product.name}
                     className="h-64 w-full object-cover transition duration-500 group-hover:scale-105"
                   />
-                  <div className="p-6 text-left">
-                    <h3 className="text-2xl font-semibold text-amber-900">
-                      {product.name}
-                    </h3>
-                    <p className="mt-3 text-gray-600">{product.price}</p>
-                    <p className="mt-4 text-amber-700 font-semibold">
-                      Haz clic para ver menú →
-                    </p>
-                  </div>
-                </button>
+                      <div className="p-6 text-left">
+                        <h3 className="text-2xl font-semibold text-amber-900">
+                          {product.name}
+                        </h3>
+                        <p className="mt-3 text-gray-600">{product.price}</p>
+                        <button
+                          onClick={(e) => {
+                            const el = e.currentTarget as HTMLButtonElement;
+                            el.classList.add("scale-95", "transition", "duration-150");
+                            setTimeout(() => {
+                              window.location.href = `/producto/${product.id}`;
+                            }, 160);
+                          }}
+                          className="mt-4 inline-flex items-center gap-2 rounded-full bg-amber-600 px-4 py-2 text-white font-semibold shadow hover:bg-amber-700 transition"
+                        >
+                          Ver más
+                        </button>
+                      </div>
+                </div>
               ))}
             </div>
           </div>

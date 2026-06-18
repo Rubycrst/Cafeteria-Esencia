@@ -3,6 +3,47 @@ import { products } from "../data/products";
 import { useCart } from "../context/useCart";
 import { useState } from "react";
 
+function renderStars(rating: number | undefined) {
+  const r = rating || 0;
+  const full = Math.floor(r);
+  const half = r - full >= 0.5;
+  const empty = 5 - full - (half ? 1 : 0);
+
+  const stars: any[] = [];
+
+  for (let i = 0; i < full; i++) {
+    stars.push(
+      <svg key={`f-${i}`} className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.966a1 1 0 00.95.69h4.176c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.921-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.176 0l-3.38 2.455c-.784.57-1.84-.197-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.049 9.393c-.783-.57-.38-1.81.588-1.81h4.176a1 1 0 00.95-.69L9.049 2.927z" />
+      </svg>
+    );
+  }
+
+  if (half) {
+    stars.push(
+      <svg key={`h`} className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+        <defs>
+          <linearGradient id="half">
+            <stop offset="50%" stopColor="currentColor" />
+            <stop offset="50%" stopColor="transparent" />
+          </linearGradient>
+        </defs>
+        <path fill="url(#half)" d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.966a1 1 0 00.95.69h4.176c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.921-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.176 0l-3.38 2.455c-.784.57-1.84-.197-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.049 9.393c-.783-.57-.38-1.81.588-1.81h4.176a1 1 0 00.95-.69L9.049 2.927z" />
+      </svg>
+    );
+  }
+
+  for (let i = 0; i < empty; i++) {
+    stars.push(
+      <svg key={`e-${i}`} className="w-5 h-5 text-gray-300" viewBox="0 0 20 20" fill="currentColor">
+        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.286 3.966a1 1 0 00.95.69h4.176c.969 0 1.371 1.24.588 1.81l-3.38 2.455a1 1 0 00-.364 1.118l1.287 3.966c.3.921-.755 1.688-1.54 1.118l-3.38-2.455a1 1 0 00-1.176 0l-3.38 2.455c-.784.57-1.84-.197-1.54-1.118l1.287-3.966a1 1 0 00-.364-1.118L2.049 9.393c-.783-.57-.38-1.81.588-1.81h4.176a1 1 0 00.95-.69L9.049 2.927z" />
+      </svg>
+    );
+  }
+
+  return stars;
+}
+
 function ProductoDetalle() {
   const { id } = useParams();
   const { addToCart } = useCart();
@@ -60,30 +101,15 @@ function ProductoDetalle() {
               S/ {product.price}.00
             </p>
 
-            {/* DESCRIPCIÓN (YA FUNCIONA SI PRODUCT EXISTE) */}
-            <div className="mt-8 space-y-4 text-lg">
-
-              <p>
-                <span className="font-bold">Región:</span>{" "}
-                {product.region}
-              </p>
-
-              <p>
-                <span className="font-bold">Tostado:</span>{" "}
-                {product.roast}
-              </p>
-
-              <p>
-                <span className="font-bold">Peso:</span>{" "}
-                {product.weight}
-              </p>
-
-              <p>
-                <span className="font-bold">Notas:</span>{" "}
-                {product.notes}
-              </p>
-
+            {/* RATING */}
+            <div className="mt-4 flex items-center gap-3">
+              <div className="flex items-center text-amber-500">
+                {renderStars(product.rating)}
+              </div>
+              <div className="text-sm text-gray-600">{product.rating} / 5</div>
             </div>
+
+            {/* DETALLES ADICIONALES: solo mostramos lo que existe en los datos */}
 
             {/* DESCRIPCIÓN PRINCIPAL */}
             <div className="mt-10">
@@ -161,9 +187,6 @@ function ProductoDetalle() {
 
                 <div className="p-4">
                   <h3 className="font-bold">{item.name}</h3>
-                  <p className="text-gray-500 text-sm">
-                    {item.region}
-                  </p>
                   <p className="text-amber-800 font-bold mt-2">
                     S/ {item.price}.00
                   </p>

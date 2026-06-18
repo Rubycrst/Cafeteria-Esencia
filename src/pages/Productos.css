@@ -1,6 +1,6 @@
 .productos-page {
   min-height: 100vh;
-  background-color: #fef3c7;
+  background-color: #ebe1bb;
   padding: 5rem 1.5rem;
 }
 
@@ -16,7 +16,7 @@
 
 .productos-title {
   font-size: clamp(2rem, 4vw, 3rem);
-  color: #92400e;
+  color: #ecc8b1;
   font-weight: 800;
 }
 
@@ -56,7 +56,7 @@
 }
 
 .producto-name {
-  color: #92400e;
+  color: #f0cab2;
   font-size: 1.5rem;
   font-weight: 700;
 }
@@ -71,5 +71,5 @@
   margin-top: 1.5rem;
   font-size: 1.25rem;
   font-weight: 800;
-  color: #b45309;
+  color: #fdd9be;
 }

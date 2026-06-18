@@ -25,15 +25,6 @@ function Navbar() {
 
           <li>
             <Link
-              to="/menu"
-              className="hover:text-amber-700 transition"
-            >
-              Productos
-            </Link>
-          </li>
-
-          <li>
-            <Link
               to="/productos"
               className="hover:text-amber-700 transition"
             >
