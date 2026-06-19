@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../utils/supabase";
+import { uploadProductImage, getCategories, type Category } from "../services/productService";
 
 type Product = {
   id: string;
@@ -7,6 +8,7 @@ type Product = {
   price: number;
   description: string;
   image_url: string;
+  category_id: string | null;
   is_available: boolean;
 };
 
@@ -19,21 +21,30 @@ const sections = [
 function DashboardAdmin() {
   const [section, setSection] = useState("productos");
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [name, setName] = useState("");
   const [price, setPrice] = useState<number | "">("");
   const [description, setDescription] = useState("");
-  const [imageUrl, setImageUrl] = useState("");
+  const [categoryId, setCategoryId] = useState<string>("");
   const [editId, setEditId] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string>("");
+  const [uploading, setUploading] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (section === "productos") {
-      supabase
-        .from("products")
-        .select("id, name, price, description, image_url, is_available")
-        .order("created_at", { ascending: false })
-        .then(({ data }) => {
-          if (data) setProducts(data as Product[]);
-        });
+      Promise.all([
+        supabase
+          .from("products")
+          .select("id, name, price, description, image_url, category_id, is_available")
+          .order("created_at", { ascending: false }),
+        getCategories(),
+      ]).then(([{ data }, cats]) => {
+        if (data) setProducts(data as Product[]);
+        setCategories(cats);
+      });
     }
   }, [section]);
 
@@ -41,33 +52,59 @@ function DashboardAdmin() {
     setName("");
     setPrice("");
     setDescription("");
-    setImageUrl("");
+    setCategoryId("");
     setEditId(null);
+    setSelectedFile(null);
+    setPreview("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  }, []);
+
+  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    setSelectedFile(file);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setPreview(reader.result as string);
+      reader.readAsDataURL(file);
+    } else {
+      setPreview("");
+    }
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !price) return;
+    setUploading(true);
+
+    let imageUrl = preview;
+
+    if (selectedFile) {
+      const uploaded = await uploadProductImage(selectedFile);
+      if (uploaded) imageUrl = uploaded;
+    }
+
+    const payload = {
+      name,
+      price: Number(price),
+      description,
+      image_url: imageUrl,
+      category_id: categoryId || null,
+    };
 
     if (editId) {
-      await supabase
-        .from("products")
-        .update({ name, price: Number(price), description, image_url: imageUrl })
-        .eq("id", editId);
+      await supabase.from("products").update(payload).eq("id", editId);
     } else {
       await supabase.from("products").insert({
-        name,
-        price: Number(price),
-        description,
-        image_url: imageUrl,
+        ...payload,
         slug: name.toLowerCase().replace(/\s+/g, "-"),
       });
     }
 
+    setUploading(false);
     resetForm();
     const { data } = await supabase
       .from("products")
-      .select("id, name, price, description, image_url, is_available")
+      .select("id, name, price, description, image_url, category_id, is_available")
       .order("created_at", { ascending: false });
     if (data) setProducts(data as Product[]);
   };
@@ -76,13 +113,17 @@ function DashboardAdmin() {
     setName(product.name);
     setPrice(product.price);
     setDescription(product.description);
-    setImageUrl(product.image_url);
+    setCategoryId(product.category_id ?? "");
+    setPreview(product.image_url);
     setEditId(product.id);
+    setSelectedFile(null);
   };
 
-  const handleDelete = async (id: string) => {
-    await supabase.from("products").delete().eq("id", id);
-    setProducts((prev) => prev.filter((p) => p.id !== id));
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    await supabase.from("products").delete().eq("id", deleteTarget.id);
+    setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+    setDeleteTarget(null);
   };
 
   return (
@@ -140,13 +181,47 @@ function DashboardAdmin() {
                   className="w-full border border-coffee-200 p-3 rounded-xl bg-coffee-50/50 focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent text-coffee-900 placeholder-coffee-400 transition"
                 />
               </div>
-              <input
-                type="text"
-                placeholder="URL de imagen"
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                className="w-full border border-coffee-200 p-3 rounded-xl bg-coffee-50/50 focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent text-coffee-900 placeholder-coffee-400 transition"
-              />
+
+              <div>
+                <label className="block text-sm font-medium text-coffee-700 mb-1.5">Categoría</label>
+                <select
+                  value={categoryId}
+                  onChange={(e) => setCategoryId(e.target.value)}
+                  className="w-full border border-coffee-200 p-3 rounded-xl bg-coffee-50/50 focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent text-coffee-900 transition"
+                >
+                  <option value="">Sin categoría</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-coffee-700 mb-1.5">Imagen del producto</label>
+                <div className="flex items-center gap-4">
+                  <label className="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-coffee-200 rounded-xl p-4 cursor-pointer hover:border-coffee-400 transition bg-coffee-50/50">
+                    <svg className="w-5 h-5 text-coffee-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-sm text-coffee-500">
+                      {selectedFile ? selectedFile.name : "Subir imagen"}
+                    </span>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                  </label>
+                  {preview && (
+                    <div className="w-16 h-16 rounded-xl overflow-hidden border border-coffee-200 flex-shrink-0">
+                      <img src={preview} alt="Preview" className="w-full h-full object-cover" />
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <textarea
                 placeholder="Descripción"
                 value={description}
@@ -155,8 +230,12 @@ function DashboardAdmin() {
                 className="w-full border border-coffee-200 p-3 rounded-xl bg-coffee-50/50 focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent text-coffee-900 placeholder-coffee-400 transition"
               />
               <div className="flex gap-3">
-                <button className="bg-coffee-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-coffee-800 transition">
-                  {editId ? "Actualizar" : "Agregar"}
+                <button
+                  type="submit"
+                  disabled={uploading}
+                  className="bg-coffee-700 text-white px-6 py-3 rounded-xl font-semibold hover:bg-coffee-800 transition disabled:opacity-50"
+                >
+                  {uploading ? "Subiendo..." : editId ? "Actualizar" : "Agregar"}
                 </button>
                 {editId && (
                   <button type="button" onClick={resetForm} className="px-6 py-3 rounded-xl border border-coffee-200 font-medium text-coffee-600 hover:bg-coffee-50 transition">
@@ -171,7 +250,9 @@ function DashboardAdmin() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-coffee-50 border-b border-coffee-100">
+                      <th className="text-left px-6 py-4 text-sm font-semibold text-coffee-500">Imagen</th>
                       <th className="text-left px-6 py-4 text-sm font-semibold text-coffee-500">Producto</th>
+                      <th className="text-left px-6 py-4 text-sm font-semibold text-coffee-500">Categoría</th>
                       <th className="text-left px-6 py-4 text-sm font-semibold text-coffee-500">Precio</th>
                       <th className="text-right px-6 py-4 text-sm font-semibold text-coffee-500">Acciones</th>
                     </tr>
@@ -179,7 +260,25 @@ function DashboardAdmin() {
                   <tbody>
                     {products.map((p) => (
                       <tr key={p.id} className="border-b border-coffee-50 hover:bg-coffee-50/50 transition">
+                        <td className="px-6 py-4">
+                          <div className="w-12 h-12 rounded-lg overflow-hidden bg-coffee-50">
+                            {p.image_url ? (
+                              <img src={p.image_url} alt={p.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-coffee-300">
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 font-medium text-coffee-900">{p.name}</td>
+                        <td className="px-6 py-4 text-coffee-500 text-sm">
+                          {p.category_id
+                            ? categories.find((c) => c.id === p.category_id)?.name || "—"
+                            : "—"}
+                        </td>
                         <td className="px-6 py-4 text-coffee-500">S/ {p.price}</td>
                         <td className="px-6 py-4 text-right space-x-2">
                           <button
@@ -189,7 +288,7 @@ function DashboardAdmin() {
                             Editar
                           </button>
                           <button
-                            onClick={() => handleDelete(p.id)}
+                            onClick={() => setDeleteTarget(p)}
                             className="px-4 py-2 rounded-lg bg-red-50 text-red-600 font-medium hover:bg-red-100 transition text-sm"
                           >
                             Eliminar
@@ -199,7 +298,7 @@ function DashboardAdmin() {
                     ))}
                     {products.length === 0 && (
                       <tr>
-                        <td colSpan={3} className="px-6 py-12 text-center text-coffee-400">
+                        <td colSpan={5} className="px-6 py-12 text-center text-coffee-400">
                           No hay productos aún. Agrega el primero.
                         </td>
                       </tr>
@@ -235,6 +334,37 @@ function DashboardAdmin() {
           </div>
         )}
       </main>
+
+      {deleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setDeleteTarget(null)} />
+          <div className="relative bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-scale-in">
+            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-bold text-coffee-900 text-center mb-2">Eliminar producto</h3>
+            <p className="text-sm text-coffee-500 text-center mb-6">
+              ¿Estás seguro de eliminar <strong>{deleteTarget.name}</strong>? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteTarget(null)}
+                className="flex-1 py-3 rounded-xl border border-coffee-200 font-medium text-coffee-600 hover:bg-coffee-50 transition text-sm"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 py-3 rounded-xl bg-red-600 text-white font-semibold hover:bg-red-700 transition text-sm"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

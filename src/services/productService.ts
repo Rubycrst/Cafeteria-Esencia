@@ -97,6 +97,27 @@ export async function getCategories(): Promise<Category[]> {
   return data ?? [];
 }
 
+export async function uploadProductImage(file: File): Promise<string | null> {
+  const fileExt = file.name.split(".").pop();
+  const fileName = `${crypto.randomUUID()}.${fileExt}`;
+  const filePath = `${fileName}`;
+
+  const { error } = await supabase.storage
+    .from("product-images")
+    .upload(filePath, file);
+
+  if (error) {
+    console.error("Error uploading image:", error);
+    return null;
+  }
+
+  const { data: urlData } = supabase.storage
+    .from("product-images")
+    .getPublicUrl(filePath);
+
+  return urlData?.publicUrl ?? null;
+}
+
 export function filterProductsByQuery(products: Product[], query: string): Product[] {
   if (!query.trim()) return products;
   const q = query.toLowerCase().trim();
