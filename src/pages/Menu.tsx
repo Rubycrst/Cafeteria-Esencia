@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useCart } from "../context/useCart";
-import { getProducts, type Product } from "../services/productService";
+import { getProducts, filterProductsByQuery, type Product } from "../services/productService";
 import { BANNER_MENU } from "../utils/storage";
 
 function Menu() {
@@ -17,73 +17,97 @@ function Menu() {
     });
   }, []);
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(query.toLowerCase())
+  const filteredProducts = useMemo(
+    () => filterProductsByQuery(products, query),
+    [products, query]
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="rounded-2xl bg-gradient-to-r from-amber-300 via-orange-200 to-rose-200 p-10 shadow-lg">
-          <h1 className="text-4xl font-bold text-slate-900">Cafés por Región</h1>
-          <p className="mt-3 text-slate-700">Explora nuestro catálogo de productos y encuentra tu favorito.</p>
+    <div>
+      <section className="relative py-20 overflow-hidden">
+        <div className="absolute inset-0">
+          <img src={BANNER_MENU} alt="Portada menú" className="h-full w-full object-cover" />
         </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-6 mb-10">
-        <div className="overflow-hidden rounded-2xl border border-amber-100 shadow-lg">
-          <img src={BANNER_MENU} alt="Portada menu" className="w-full h-[520px] object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-r from-coffee-900/80 to-coffee-900/40" />
+        <div className="relative max-w-7xl mx-auto px-6">
+          <div className="max-w-2xl">
+            <p className="text-sm uppercase tracking-[0.3em] text-gold-400 font-semibold mb-4">
+              Nuestro Menú
+            </p>
+            <h1 className="text-4xl md:text-6xl font-bold text-white leading-tight">
+              Cafés por Región
+            </h1>
+            <p className="mt-4 text-lg text-coffee-200 max-w-xl">
+              Explora nuestro catálogo de productos y encuentra tu favorito.
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-7xl mx-auto px-6 py-10">
-        <div className="mb-10 rounded-2xl bg-white border border-amber-100 p-6 shadow-md">
+      <section className="max-w-7xl mx-auto px-6 py-16">
+        <div className="mb-10 bg-white rounded-2xl shadow-sm border border-coffee-100 p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-slate-700">Busca aquí para filtrar los productos por nombre.</p>
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Buscar productos..."
-              className="w-full sm:w-80 rounded-full border border-amber-200 bg-white px-4 py-3 shadow-sm focus:border-amber-400 focus:outline-none"
-            />
+            <div>
+              <p className="text-coffee-900 font-semibold">Buscar productos</p>
+              <p className="text-sm text-coffee-400 mt-1">{filteredProducts.length} productos encontrados</p>
+            </div>
+            <div className="relative w-full sm:w-80">
+              <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-coffee-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Buscar productos..."
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-coffee-200 bg-coffee-50/50 focus:outline-none focus:ring-2 focus:ring-gold-400 focus:border-transparent text-coffee-900 placeholder-coffee-400 transition"
+              />
+            </div>
           </div>
         </div>
 
         {loading ? (
           <div className="flex justify-center py-20">
-            <div className="w-10 h-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin" />
+            <div className="w-10 h-10 border-4 border-gold-500 border-t-transparent rounded-full animate-spin" />
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="bg-white rounded-xl shadow p-10 text-center">
-            <p className="text-xl text-gray-500">No se encontraron productos.</p>
+          <div className="bg-white rounded-2xl shadow-sm border border-coffee-100 p-16 text-center">
+            <div className="w-16 h-16 rounded-full bg-coffee-50 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-coffee-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <p className="text-xl text-coffee-500 font-medium">No se encontraron productos.</p>
           </div>
         ) : (
-          <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="group overflow-hidden rounded-lg border border-amber-100 bg-white shadow-md transition duration-300 hover:-translate-y-1 hover:shadow-lg">
+              <div key={product.id} className="group rounded-2xl bg-white shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden border border-coffee-100 hover:-translate-y-1">
                 <Link to={`/producto/${product.id}`}>
-                  <img
-                    src={product.image_url || BANNER_MENU}
-                    alt={product.name}
-                    className="h-56 w-full object-cover transition duration-300 group-hover:scale-105"
-                  />
+                  <div className="aspect-[4/3] overflow-hidden bg-coffee-50">
+                    <img
+                      src={product.image_url}
+                      alt={product.name}
+                      className="h-full w-full object-cover transition duration-700 group-hover:scale-110"
+                      loading="lazy"
+                    />
+                  </div>
                 </Link>
-                <div className="p-5">
-                  <h3 className="text-2xl font-semibold text-slate-900">{product.name}</h3>
-                  <p className="mt-3 text-slate-600 line-clamp-3">{product.description}</p>
-                  <p className="mt-5 text-xl font-bold text-amber-700">S/ {product.price}.00</p>
+                <div className="p-6">
+                  <h3 className="text-xl font-bold text-coffee-900">{product.name}</h3>
+                  <p className="mt-2 text-coffee-500 text-sm line-clamp-2 leading-relaxed">{product.description}</p>
+                  <p className="mt-4 text-xl font-bold text-gold-600">S/ {product.price}</p>
                   <div className="mt-6 flex flex-wrap gap-3">
                     <Link
                       to={`/producto/${product.id}`}
-                      className="rounded-lg bg-amber-600 px-4 py-2 text-white font-semibold transition hover:bg-amber-700"
+                      className="flex-1 rounded-xl bg-coffee-700 px-4 py-3 text-sm font-semibold text-white text-center hover:bg-coffee-800 transition"
                     >
                       Ver más
                     </Link>
                     <button
-                      onClick={() => addToCart({ id: product.id, name: product.name, price: product.price, image: product.image_url || BANNER_MENU })}
-                      className="rounded-lg border border-amber-600 px-4 py-2 text-amber-700 font-semibold transition hover:bg-amber-50"
+                      onClick={() => addToCart({ id: product.id, name: product.name, price: product.price, image: product.image_url })}
+                      className="flex-1 rounded-xl border border-coffee-200 bg-coffee-50 px-4 py-3 text-sm font-semibold text-coffee-700 hover:bg-coffee-100 transition"
                     >
-                      Agregar al carrito
+                      Agregar
                     </button>
                   </div>
                 </div>
@@ -91,7 +115,7 @@ function Menu() {
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 }

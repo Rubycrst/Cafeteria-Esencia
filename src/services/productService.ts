@@ -77,32 +77,33 @@ export async function getRelatedProducts(currentId: string, limit = 4): Promise<
   return data ?? [];
 }
 
-export async function searchProducts(query: string): Promise<Product[]> {
+export type Category = {
+  id: string;
+  name: string;
+  slug: string;
+};
+
+export async function getCategories(): Promise<Category[]> {
   const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .eq("is_available", true)
-    .textSearch("search_vector", query, {
-      type: "websearch",
-      config: "spanish",
-    })
-    .order("created_at", { ascending: false });
+    .from("categories")
+    .select("id, name, slug")
+    .order("name");
 
   if (error) {
-    const { data: fallback, error: fallbackError } = await supabase
-      .from("products")
-      .select("*")
-      .eq("is_available", true)
-      .ilike("name", `%${query}%`)
-      .order("created_at", { ascending: false });
-
-    if (fallbackError) {
-      console.error("Error searching products:", fallbackError);
-      return [];
-    }
-
-    return fallback ?? [];
+    console.error("Error fetching categories:", error);
+    return [];
   }
 
   return data ?? [];
+}
+
+export function filterProductsByQuery(products: Product[], query: string): Product[] {
+  if (!query.trim()) return products;
+  const q = query.toLowerCase().trim();
+  return products.filter(
+    (p) =>
+      p.name.toLowerCase().includes(q) ||
+      p.description?.toLowerCase().includes(q) ||
+      p.region?.toLowerCase().includes(q)
+  );
 }

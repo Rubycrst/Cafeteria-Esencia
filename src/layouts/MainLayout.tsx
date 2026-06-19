@@ -8,7 +8,7 @@ function MainLayout({ children }: { children: React.ReactNode }) {
   return (
     <div style={{ fontSize: `${fontSize}px` }}>
       <Navbar />
-      <main className="pt-20 bg-amber-50/50 min-h-screen">
+      <main className="pt-16 min-h-screen bg-coffee-50/30">
         {children}
       </main>
       <Footer />

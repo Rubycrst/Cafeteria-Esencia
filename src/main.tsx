@@ -6,15 +6,18 @@ import "./index.css";
 import App from "./App.tsx";
 import { CartProvider } from "./context/CartProvider";
 import { AccessibilityProvider } from "./context/AccessibilityContext";
+import { AuthProvider } from "./context/AuthContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <AccessibilityProvider>
-        <CartProvider>
-          <App />
-        </CartProvider>
-      </AccessibilityProvider>
+      <AuthProvider>
+        <AccessibilityProvider>
+          <CartProvider>
+            <App />
+          </CartProvider>
+        </AccessibilityProvider>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>
 );
