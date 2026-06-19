@@ -5,13 +5,16 @@ import { BrowserRouter } from "react-router-dom";
 import "./index.css";
 import App from "./App.tsx";
 import { CartProvider } from "./context/CartProvider";
+import { AccessibilityProvider } from "./context/AccessibilityContext";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
-      <CartProvider>
-        <App />
-      </CartProvider>
+      <AccessibilityProvider>
+        <CartProvider>
+          <App />
+        </CartProvider>
+      </AccessibilityProvider>
     </BrowserRouter>
   </StrictMode>
 );

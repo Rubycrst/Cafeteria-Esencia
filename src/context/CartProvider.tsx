@@ -2,10 +2,13 @@ import { useEffect, useState } from "react";
 import { CartContext, type Product, type CartItem } from "./CartContext";
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-
   const [cart, setCart] = useState<CartItem[]>(() => {
-    const saved = localStorage.getItem("cart");
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem("cart");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
   });
 
   useEffect(() => {
@@ -15,7 +18,6 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const addToCart = (product: Product, quantity: number = 1) => {
     setCart((prev) => {
       const existing = prev.find((item) => item.id === product.id);
-
       if (existing) {
         return prev.map((item) =>
           item.id === product.id
@@ -23,12 +25,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             : item
         );
       }
-
       return [...prev, { ...product, quantity }];
     });
   };
 
-  const increaseQuantity = (id: number) => {
+  const increaseQuantity = (id: string | number) => {
     setCart((prev) =>
       prev.map((item) =>
         item.id === id
@@ -38,7 +39,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const decreaseQuantity = (id: number) => {
+  const decreaseQuantity = (id: string | number) => {
     setCart((prev) =>
       prev
         .map((item) =>
@@ -50,11 +51,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     );
   };
 
-  const removeFromCart = (id: number) => {
+  const removeFromCart = (id: string | number) => {
     setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  // ✅ NUEVO: vaciar carrito
   const clearCart = () => {
     setCart([]);
     localStorage.removeItem("cart");
@@ -73,7 +73,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         removeFromCart,
         increaseQuantity,
         decreaseQuantity,
-        clearCart, // ✅ AQUI
+        clearCart,
         total,
       }}
     >
